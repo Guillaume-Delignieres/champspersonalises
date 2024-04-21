@@ -6,27 +6,21 @@ public class CustomFieldCache
 {
     private const int CacheEntrySize = 1;
     private static readonly TimeSpan CacheSlidingOperation = TimeSpan.FromMinutes(1);
+    private const int CacheSize = 1024;
+
+    private static readonly MemoryCacheOptions MemoryCacheOptions = new MemoryCacheOptions
+    {
+        SizeLimit = CacheSize
+    };
 
     
-    private readonly IMemoryCache _clientCache = new MemoryCache(new MemoryCacheOptions
-    {
-        SizeLimit = 1024
-    });
+    private readonly IMemoryCache _clientCache = new MemoryCache(MemoryCacheOptions);
     
-    private readonly IMemoryCache _resourceCache = new MemoryCache(new MemoryCacheOptions
-    {
-        SizeLimit = 1024
-    });
+    private readonly IMemoryCache _resourceCache = new MemoryCache(MemoryCacheOptions);
     
-    private readonly IMemoryCache _taskCache  = new MemoryCache(new MemoryCacheOptions
-    {
-        SizeLimit = 1024
-    });
+    private readonly IMemoryCache _taskCache  = new MemoryCache(MemoryCacheOptions);
     
-    private readonly IMemoryCache _projectCache = new MemoryCache(new MemoryCacheOptions
-    {
-        SizeLimit = 1024
-    });
+    private readonly IMemoryCache _projectCache = new MemoryCache(MemoryCacheOptions);
     
     public Task<List<CustomFieldJs>?> GetClientCustomFields(string companyId, CustomFieldTypeUsedFor customFieldTypeUsedFor, Func<Task<List<CustomFieldJs>>> factory)
     {
