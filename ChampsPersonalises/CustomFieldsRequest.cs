@@ -4,16 +4,23 @@ namespace ChampsPersonalises;
 
 public class CustomFieldCache
 {
-    private const int CacheEntrySize = 1;
-    private static readonly TimeSpan CacheSlidingOperation = TimeSpan.FromMinutes(1);
+    // Set a limit to 1024 for the Cache size, this value would have to be evaluated based on the size of the cached object 
     private const int CacheSize = 1024;
+    
+    // Set a default cache entry to 1 - So we can store 1024 cache entry for each cache
+    private const int CacheEntrySize = 1;
+    
+    // Set a sliding expiration for the cache - Cache entry will be removed after 1 minute if not accessed since.
+    private static readonly TimeSpan CacheSlidingOperation = TimeSpan.FromMinutes(1);
 
     private static readonly MemoryCacheOptions MemoryCacheOptions = new MemoryCacheOptions
     {
         SizeLimit = CacheSize
     };
 
-    
+    // We are creating a cache of each type of Custom Fields we manage.
+    // It is probably OK to do so as their number is limited to 4.
+    // This decision have to be reviewed if that number was to grow
     private readonly IMemoryCache _clientCache = new MemoryCache(MemoryCacheOptions);
     
     private readonly IMemoryCache _resourceCache = new MemoryCache(MemoryCacheOptions);
@@ -22,6 +29,8 @@ public class CustomFieldCache
     
     private readonly IMemoryCache _projectCache = new MemoryCache(MemoryCacheOptions);
     
+    // GetOrCreate - If the data is not cached, MemoryCachew will call the cache entry factory which will create the entry in the cache and return it.
+    // Otherwise, just return the cache entry.
     public Task<List<CustomFieldJs>?> GetClientCustomFields(string companyId, CustomFieldTypeUsedFor customFieldTypeUsedFor, Func<Task<List<CustomFieldJs>>> factory)
     {
         async Task<List<CustomFieldJs>> CacheEntryFactory(ICacheEntry entry)
@@ -49,6 +58,7 @@ public class CustomFieldCache
         _clientCache.Remove(companyId);
     }
 
+    // To invalidate, remove the data for the company in the cache
     public void InvalidateCacheForCompany(CustomFieldTypeUsedFor customFieldTypeUsedFor, string companyId)
     {
         switch (customFieldTypeUsedFor)
@@ -85,6 +95,8 @@ public class CustomFieldsRequest
         _cache = cache;
     }
     
+    // I removed a lot of code in that class and leverage the factory that is used by the cache.
+    // I create a fake Data interface which will have the responsibility to fetch the CustomDataField if they are not in the cache
     public Task<List<CustomFieldJs>?> GetCustomFieldsFor(CustomFieldTypeUsedFor cfObject)
     {
         var companyId = _userSettingsService.GetUserDescription().CompanyId;
